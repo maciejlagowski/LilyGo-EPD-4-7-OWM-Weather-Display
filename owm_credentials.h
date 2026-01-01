@@ -11,15 +11,15 @@ const char server[] = "api.openweathermap.org";
 //http://api.openweathermap.org/data/2.5/weather?q=Melksham,UK&APPID=your_OWM_API_key&mode=json&units=metric&cnt=1
 
 //Set your location according to OWM locations
-String City             = "Bath";                          // Your home city See: http://bulk.openweathermap.org/sample/
-String Latitude         = "51.38";                         // Latitude of your location in decimal degrees
-String Longitude        = "-2.36";                         // Longitude of your location in decimal degrees
+String City             = "Warsaw";                          // Your home city See: http://bulk.openweathermap.org/sample/
+String Latitude         = "52.229771";                        // Latitude of your location in decimal degrees
+String Longitude        = "21.01178";                         // Longitude of your location in decimal degrees
 String Language         = "EN";                            // NOTE: Only the weather description is translated by OWM
                                                            // Examples: Arabic (AR) Czech (CZ) English (EN) Greek (EL) Persian(Farsi) (FA) Galician (GL) Hungarian (HU) Japanese (JA)
                                                            // Korean (KR) Latvian (LA) Lithuanian (LT) Macedonian (MK) Slovak (SK) Slovenian (SL) Vietnamese (VI)
 String Hemisphere       = "north";                         // or "south"  
 String Units            = "M";                             // Use 'M' for Metric or I for Imperial 
-const char* Timezone    = "GMT0BST,M3.5.0/01,M10.5.0/02";  // Choose your time zone from: https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv 
+const char* Timezone    = "CET-1CEST,M3.5.0,M10.5.0/3";  // Choose your time zone from: https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv 
                                                            // See below for examples
 const char* ntpServer   = "0.uk.pool.ntp.org";             // Or, choose a time server close to you, but in most cases it's best to use pool.ntp.org to find an NTP server
                                                            // then the NTP system decides e.g. 0.pool.ntp.org, 1.pool.ntp.org as the NTP syem tries to find  the closest available servers
