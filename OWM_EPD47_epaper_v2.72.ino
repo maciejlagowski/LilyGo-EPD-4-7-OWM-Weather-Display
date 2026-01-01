@@ -5,7 +5,7 @@
 #include "epd_driver.h"         // https://github.com/Xinyuan-LilyGO/LilyGo-EPD47
 #include "esp_adc_cal.h"        // In-built
 
-#include <ArduinoJson.h>        // https://github.com/bblanchon/ArduinoJson
+#include "ArduinoJson.h"        // https://github.com/bblanchon/ArduinoJson
 #include <HTTPClient.h>         // In-built
 
 #include <WiFi.h>               // In-built
@@ -54,7 +54,7 @@ float humidity_readings[max_readings]    = {0};
 float rain_readings[max_readings]        = {0};
 float snow_readings[max_readings]        = {0};
 
-long SleepDuration   = 60; // Sleep time in minutes, aligned to the nearest minute boundary, so if 30 will always update at 00 or 30 past the hour
+long SleepDuration   = 15; // Sleep time in minutes, aligned to the nearest minute boundary, so if 30 will always update at 00 or 30 past the hour
 int  WakeupHour      = 8;  // Wakeup after 07:00 to save battery power
 int  SleepHour       = 23; // Sleep  after 23:00 to save battery power
 long StartTime       = 0;
@@ -151,7 +151,7 @@ void setup() {
       bool RxForecast = false;
       WiFiClient client;   // wifi client object
       while ((RxWeather == false || RxForecast == false) && Attempts <= 2) { // Try up-to 2 time for Weather and Forecast data
-        if (RxWeather  == false) RxWeather  = obtainWeatherData(client, "onecall");
+        if (RxWeather  == false) RxWeather  = obtainWeatherData(client, "weather");
         if (RxForecast == false) RxForecast = obtainWeatherData(client, "forecast");
         Attempts++;
       }
@@ -187,29 +187,30 @@ bool DecodeWeather(WiFiClient& json, String Type) {
   // convert it to a JsonObject
   JsonObject root = doc.as<JsonObject>();
   Serial.println(" Decoding " + Type + " data");
-  if (Type == "onecall") {
+  if (Type == "weather") {
     // All Serial.println statements are for diagnostic purposes and some are not required, remove if not needed with //
     WxConditions[0].High        = -50; // Minimum forecast low
     WxConditions[0].Low         = 50;  // Maximum Forecast High
-    WxConditions[0].FTimezone   = doc["timezone_offset"]; // "0"
-    JsonObject current = doc["current"];
-    WxConditions[0].Sunrise     = current["sunrise"];                              Serial.println("SRis: " + String(WxConditions[0].Sunrise));
-    WxConditions[0].Sunset      = current["sunset"];                               Serial.println("SSet: " + String(WxConditions[0].Sunset));
-    WxConditions[0].Temperature = current["temp"];                                 Serial.println("Temp: " + String(WxConditions[0].Temperature));
-    WxConditions[0].FeelsLike   = current["feels_like"];                           Serial.println("FLik: " + String(WxConditions[0].FeelsLike));
-    WxConditions[0].Pressure    = current["pressure"];                             Serial.println("Pres: " + String(WxConditions[0].Pressure));
-    WxConditions[0].Humidity    = current["humidity"];                             Serial.println("Humi: " + String(WxConditions[0].Humidity));
-    WxConditions[0].DewPoint    = current["dew_point"];                            Serial.println("DPoi: " + String(WxConditions[0].DewPoint));
-    WxConditions[0].UVI         = current["uvi"];                                  Serial.println("UVin: " + String(WxConditions[0].UVI));
-    WxConditions[0].Cloudcover  = current["clouds"];                               Serial.println("CCov: " + String(WxConditions[0].Cloudcover));
-    WxConditions[0].Visibility  = current["visibility"];                           Serial.println("Visi: " + String(WxConditions[0].Visibility));
-    WxConditions[0].Windspeed   = current["wind_speed"];                           Serial.println("WSpd: " + String(WxConditions[0].Windspeed));
-    WxConditions[0].Winddir     = current["wind_deg"];                             Serial.println("WDir: " + String(WxConditions[0].Winddir));
-    JsonObject current_weather  = current["weather"][0];
-    String Description = current_weather["description"];                           // "scattered clouds"
-    String Icon        = current_weather["icon"];                                  // "01n"
-    WxConditions[0].Forecast0   = Description;                                     Serial.println("Fore: " + String(WxConditions[0].Forecast0));
-    WxConditions[0].Icon        = Icon;                                            Serial.println("Icon: " + String(WxConditions[0].Icon));
+    WxConditions[0].FTimezone   = doc["timezone"]; // "0"
+    JsonObject currentWeather = doc["weather"][0];
+    JsonObject main = doc["main"];
+    JsonObject wind = doc["wind"];
+    JsonObject sys = doc["sys"];
+    JsonObject clouds = doc["clouds"];
+    WxConditions[0].Sunrise     = sys["sunrise"];                          Serial.println("SRis: " + String(WxConditions[0].Sunrise));
+    WxConditions[0].Sunset      = sys["sunset"];                           Serial.println("SSet: " + String(WxConditions[0].Sunset));
+    WxConditions[0].Temperature = main["temp"];                            Serial.println("Temp: " + String(WxConditions[0].Temperature));
+    WxConditions[0].FeelsLike   = main["feels_like"];                      Serial.println("FLik: " + String(WxConditions[0].FeelsLike));
+    WxConditions[0].Pressure    = main["pressure"];                        Serial.println("Pres: " + String(WxConditions[0].Pressure));
+    WxConditions[0].Humidity    = main["humidity"];                        Serial.println("Humi: " + String(WxConditions[0].Humidity));
+    WxConditions[0].Cloudcover  = clouds["all"];                           Serial.println("CCov: " + String(WxConditions[0].Cloudcover));
+    WxConditions[0].Visibility  = doc["visibility"];                       Serial.println("Visi: " + String(WxConditions[0].Visibility));
+    WxConditions[0].Windspeed   = wind["speed"];                           Serial.println("WSpd: " + String(WxConditions[0].Windspeed));
+    WxConditions[0].Winddir     = wind["deg"];                             Serial.println("WDir: " + String(WxConditions[0].Winddir));
+    String Description = currentWeather["description"];                    // "scattered clouds"
+    String Icon        = currentWeather["icon"];                           // "01n"
+    WxConditions[0].Forecast0   = Description;                             Serial.println("Fore: " + String(WxConditions[0].Forecast0));
+    WxConditions[0].Icon        = Icon;                                    Serial.println("Icon: " + String(WxConditions[0].Icon));
   }
   if (Type == "forecast") {
     //Serial.println(json);
@@ -264,7 +265,7 @@ bool obtainWeatherData(WiFiClient & client, const String & RequestType) {
   HTTPClient http;
   //api.openweathermap.org/data/2.5/RequestType?lat={lat}&lon={lon}&appid={API key}
   String uri = "/data/2.5/" + RequestType + "?lat=" + Latitude + "&lon=" + Longitude + "&appid=" + apikey + "&mode=json&units=" + units + "&lang=" + Language;
-  if (RequestType == "onecall") uri += "&exclude=minutely,hourly,alerts,daily";
+  if (RequestType == "weather") uri += "&exclude=minutely,hourly,alerts,daily";
   http.begin(client, server, 80, uri); //http.begin(uri,test_root_ca); //HTTPS example connection
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) {
@@ -274,6 +275,8 @@ bool obtainWeatherData(WiFiClient & client, const String & RequestType) {
   else
   {
     Serial.printf("connection failed, error: %s", http.errorToString(httpCode).c_str());
+    Serial.printf("connection failed, url: %s", uri.c_str());
+    Serial.printf("connection failed, code: %d", httpCode);
     client.stop();
     http.end();
     return false;
@@ -444,18 +447,6 @@ void DisplayVisiCCoverUVISection(int x, int y) {
   Serial.print("=========================="); Serial.println(WxConditions[0].Visibility);
   Visibility(x + 5, y, String(WxConditions[0].Visibility) + "M");
   CloudCover(x + 155, y, WxConditions[0].Cloudcover);
-  Display_UVIndexLevel(x + 265, y, WxConditions[0].UVI);
-}
-
-void Display_UVIndexLevel(int x, int y, float UVI) {
-  String Level = "";
-  if (UVI <= 2)              Level = " (L)";
-  if (UVI >= 3 && UVI <= 5)  Level = " (M)";
-  if (UVI >= 6 && UVI <= 7)  Level = " (H)";
-  if (UVI >= 8 && UVI <= 10) Level = " (VH)";
-  if (UVI >= 11)             Level = " (EX)";
-  drawString(x + 20, y - 5, String(UVI, (UVI < 0 ? 1 : 0)) + Level, LEFT);
-  DrawUVI(x - 10, y - 5);
 }
 
 void DisplayForecastWeather(int x, int y, int index, int fwidth) {
